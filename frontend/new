@@ -1,0 +1,285 @@
+ <motion.a 
+              href="#features"
+              className="text-sm font-medium text-zinc-600 hover:text-primary dark:text-zinc-300 dark:hover:text-primary-light transition-colors"
+              whileHover={{ y: -2 }}
+            >
+              Features
+            </motion.a>
+            <motion.a 
+              href="#pricing"
+              className="text-sm font-medium text-zinc-600 hover:text-primary dark:text-zinc-300 dark:hover:text-primary-light transition-colors"
+              whileHover={{ y: -2 }}
+            >
+              Pricing
+            </motion.a>
+
+            return (
+              <div className="text-center space-y-6">
+                <h3 className="text-xl font-bold text-foreground">Choose Your Vibe</h3>
+                <div className="relative w-full">
+                  {/* Focus Overlay */}
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-4 border-accent-3 z-10 pointer-events-none" />
+          
+                  {/* Avatar Scrollable Strip */}
+                  <div
+                    ref={containerRef}
+                    className="flex items-center gap-6 overflow-x-auto snap-x scroll-smooth px-4 py-3 no-scrollbar"
+                  >
+                    {/* Spacer before */}
+                    <div className="shrink-0 w-[calc(50%-48px)]" /> {/* 48px = half avatar width */}
+                    
+                    {avatarImages.map((img, index) => {
+                      const isActive = selectedAvatar === img;
+                      return (
+                        <motion.div
+                          key={index}
+                          onClick={() => handleSelect(img, index)}
+                          whileTap={{ scale: 0.9 }}
+                          className={classNames(
+                            "w-24 h-24 rounded-full overflow-hidden snap-center shrink-0 cursor-pointer border-4 transition-all duration-300 relative",
+                            {
+                              "border-primary scale-110 shadow-xl z-20": isActive,
+                              "border-muted brightness-75": !isActive,
+                            }
+                          )}
+                        >
+                          <img
+                            src={`thumbs/${img}`}
+                            alt={`Avatar ${index}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </motion.div>
+                      );
+                    })}
+          
+                    {/* Spacer after */}
+                    <div className="shrink-0 w-[calc(50%-48px)]" />
+                  </div>
+                </div>
+              </div>
+            );
+          
+            import { motion } from "framer-motion";
+            import { useEffect, useRef, useState } from "react";
+            import { TypeAnimation } from "react-type-animation";
+            
+            const mockStreams = [
+              { user: "Didi", avatar: "/thumbs/dog.jpg", messages: ["omg you guys 😭", "he actually said that?!", "I'm streaming this live"] },
+              { user: "Kiki", avatar: "/thumbs/girrafe.jpg", messages: ["tea is hot 🔥", "stay tuned babes", "y'all ain't ready"] },
+              { user: "Remy", avatar: "/thumbs/monkey.jpg", messages: ["I just heard something crazy 😳", "catch this gist live"] },
+              { user: "Tola", avatar: "/thumbs/bird.jpg", messages: ["tap in gossipa 🐦", "live gist dropping in 3... 2..."] },
+            ];
+            
+            const FloatingStreamCard = ({ user, avatar, messages, delay, innerRef }) => {
+              const [index, setIndex] = useState(0);
+            
+              useEffect(() => {
+                const interval = setInterval(() => {
+                  setIndex((prev) => (prev + 1) % messages.length);
+                }, 3000);
+                return () => clearInterval(interval);
+              }, [messages]);
+            
+              return (
+                <motion.div
+                  ref={innerRef}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay, duration: 1.2 }}
+                  className="floating-card relative p-4 w-60 h-36 text-sm text-white flex flex-col gap-2 bg-background/70 backdrop-blur-sm rounded-lg border border-white/10 shadow-md"
+                >
+                  <div className="flex items-center gap-3">
+                    <img src={avatar} alt={user} className="w-8 h-8 rounded-full object-cover border border-white/20" />
+                    <span className="font-semibold">{user}</span>
+                  </div>
+                  <div className="text-muted-foreground mt-2 text-xs">
+                    <TypeAnimation
+                      key={messages[index]}
+                      sequence={[messages[index], 2500]}
+                      wrapper="span"
+                      cursor={true}
+                      speed={40}
+                    />
+                  </div>
+                </motion.div>
+              );
+            };
+            
+            export default function LiveTypingShowcase() {
+              const cardRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+              const centerRef = useRef(null);
+              const [lines, setLines] = useState([]);
+            
+              useEffect(() => {
+                const getCenter = (el) => {
+                  if (!el) return { x: 0, y: 0 };
+                  const rect = el.getBoundingClientRect();
+                  return {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2,
+                  };
+                };
+            
+                let frame: number;
+                const updateLines = () => {
+                  cancelAnimationFrame(frame);
+                  frame = requestAnimationFrame(() => {
+                    const center = getCenter(centerRef.current);
+                    const newLines = cardRefs.map((ref) => {
+                      const start = getCenter(ref.current);
+                      return { x1: start.x, y1: start.y, x2: center.x, y2: center.y };
+                    });
+                    setLines(newLines);
+                  });
+                };
+            
+                updateLines();
+                window.addEventListener("resize", updateLines);
+                window.addEventListener("scroll", updateLines);
+                return () => {
+                  window.removeEventListener("resize", updateLines);
+                  window.removeEventListener("scroll", updateLines);
+                  cancelAnimationFrame(frame);
+                };
+              }, []);
+            
+              return (
+                <section className="relative isolate min-h-[95vh] flex items-center justify-center overflow-hidden bg-center bg-cover bg-no-repeat text-white">
+                  {/* Background Overlay */}
+                  <div className="absolute inset-0 z-0 pointer-events-none"
+                    style={{
+                      background: "radial-gradient(circle at center, rgba(0,0,0,0) 20%, rgba(0,0,0,0.7) 80%)"
+                    }}
+                  />
+            
+            <svg className="absolute inset-0 z-[9] pointer-events-none w-full h-full" width="100%" height="100%">
+              <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#7f5af0" />
+                  <stop offset="100%" stopColor="#d13d87" />
+                </linearGradient>
+              </defs>
+            
+              {/* Didi -> center */}
+              <motion.path
+                d="M 100 160 Q 180 120, 960 540"
+                stroke="url(#lineGradient)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="transparent"
+                strokeDasharray="6"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.4, ease: "easeInOut", delay: 0.3 }}
+              />
+            
+              {/* Kiki -> center */}
+              <motion.path
+                d="M 1720 860 Q 1500 700, 960 540"
+                stroke="url(#lineGradient)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="transparent"
+                strokeDasharray="6"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.4, ease: "easeInOut", delay: 0.5 }}
+              />
+            
+              {/* Remy -> center */}
+              <motion.path
+                d="M 1440 320 Q 1150 450, 960 540"
+                stroke="url(#lineGradient)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="transparent"
+                strokeDasharray="6"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.4, ease: "easeInOut", delay: 0.7 }}
+              />
+            
+              {/* Tola -> center */}
+              <motion.path
+                d="M 480 760 Q 750 680, 960 540"
+                stroke="url(#lineGradient)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="transparent"
+                strokeDasharray="6"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.4, ease: "easeInOut", delay: 0.9 }}
+              />
+            </svg>
+            
+                  {/* Floating Cards */}
+            <div className="absolute inset-0 z-20 pointer-events-none">
+              {/* Didi (Top-left) */}
+              <div className="absolute" style={{ top: "120px", left: "50px" }}>
+                <FloatingStreamCard {...mockStreams[0]} delay={0.2} innerRef={cardRefs[0]} />
+              </div>
+            
+              {/* Kiki (Bottom-right) */}
+              <div className="absolute" style={{ bottom: "40px", right: "100px" }}>
+                <FloatingStreamCard {...mockStreams[1]} delay={0.4} innerRef={cardRefs[1]} />
+              </div>
+            
+              {/* Remy (Top-right) */}
+              <div className="absolute" style={{ top: "260px", right: "380px" }}>
+                <FloatingStreamCard {...mockStreams[2]} delay={0.6} innerRef={cardRefs[2]} />
+              </div>
+            
+              {/* Tola (Bottom-left) */}
+              <div className="absolute" style={{ bottom: "100px", left: "250px" }}>
+                <FloatingStreamCard {...mockStreams[3]} delay={0.8} innerRef={cardRefs[3]} />
+              </div>
+            </div>
+            
+            
+                  {/* Center Box */}
+                  <div
+              ref={centerRef}
+              className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2
+                z-30 max-w-xl w-full text-center px-6 py-10 sm:px-10 backdrop-blur-md rounded-xl
+                border border-white/10 bg-black/40 shadow-xl"
+            >
+            
+            <motion.h2
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              className="text-4xl sm:text-5xl font-bold bg-clip-text text-gradient bg-gradient-to-r from-primary to-secondary drop-shadow-lg"
+            >
+              <span className="block sm:inline">Stream Gossip.</span>{" "}
+              <br class="hidden sm:block" />
+              <span className="block sm:inline ">Live. Typing.</span>
+            </motion.h2>
+            
+            
+                    <motion.div
+              className="w-32 h-1.5 bg-gradient-to-r from-primary to-secondary rounded-full mt-6 mx-auto shadow-[0_0_10px_rgba(127,90,240,0.5)]"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1, opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 1.8, delay: 0.5, ease: "easeInOut" }}
+              
+              style={{ transformOrigin: "left" }}
+            />
+            
+            
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 1, delay: 0.2 }}
+                      className="mt-4 text-sm sm:text-base text-white/90 leading-relaxed"
+                    >
+                      The juice doesn’t wait. Go live instantly with nothing but your fingers and vibes.
+                      <br className="hidden sm:block" />
+                      <span className="text-primary font-semibold">No mic. No camera. Just Gossipa.</span>
+                    </motion.p>
+                  </div>
+                </section>
+              );
+            }
+            

@@ -1,0 +1,13 @@
+@keyframes sparkle {
+    0%, 100% {
+      text-shadow: 0 0 5px gold, 0 0 10px gold;
+    }
+    50% {
+      text-shadow: 0 0 10px #fff, 0 0 20px gold;
+    }
+  }
+  
+  .animate-sparkle {
+    animation: sparkle 1.5s infinite ease-in-out;
+  }
+  
