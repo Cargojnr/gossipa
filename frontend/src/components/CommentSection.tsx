@@ -37,7 +37,7 @@ const CommentSection: React.FC<Props> = ({ data }) => {
   const aggregateReactions = (reactions: Reaction[] | undefined | null) => {
     const result: Record<string, { count: number }> = {};
     if (!Array.isArray(reactions)) {
-        if (process.env.NODE_ENV !== "production") {
+        if (import.meta.env.MODE !== "production") {
           console.warn("Reactions is not an array:", reactions);
         }
         return result;

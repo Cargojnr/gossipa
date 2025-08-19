@@ -4,7 +4,7 @@ import ChiefGossipaCard from './ChiefGossipa';
 import MeetTheChiefs from './MeetTheChiefs';
 
 interface RightSidebarProps {
-  userId: number;
+  userId?: number;
 }
 
 const RightSidebar: React.FC<RightSidebarProps> = ({ userId }) => {

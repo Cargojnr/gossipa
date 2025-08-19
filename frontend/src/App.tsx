@@ -7,7 +7,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { Toaster } from "sonner";
-import FeedsPage from "./pages/FeedsPage";
+// import FeedsPage from "./pages/FeedsPage";
 
 const App = () => {
   return (
@@ -19,7 +19,7 @@ const App = () => {
         <Route path="/reset/:token" element={<ResetPage />} />
         <Route path="/forgot" element={<ForgotPasswordPage />} />
         <Route path="/reset" element={<ResetPasswordPage />} />
-        <Route path="/feeds" element={<FeedsPage />} /> 
+        {/* <Route path="/feeds" element={<FeedsPage />} />  */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster richColors position="top-center" />

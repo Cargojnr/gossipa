@@ -63,7 +63,14 @@ export default function FeedPage() {
 
 
   return (
-    <Layout userId={feed?.user?.id}>
+    <Layout 
+    {...(feed?.user
+      ? {
+          userId: Number(feed.user.id), // 👈 force number
+          profilePicture: feed.user.profilePicture,
+        }
+      : {})}
+    >
     <main className="p-4 max-w-3xl mx-auto">
       <TutorialOverlay username={feed?.user.username ?? ""} />
 

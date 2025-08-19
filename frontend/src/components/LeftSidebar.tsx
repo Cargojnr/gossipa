@@ -4,8 +4,8 @@ import React from "react";
 import ThemeToggle from "./ThemeToggle";
 
 interface LeftSidebarProps {
-  userId: string;
-  profilePicture: string;
+  userId?: number;
+  profilePicture?: string;
   verified: boolean;
 }
 

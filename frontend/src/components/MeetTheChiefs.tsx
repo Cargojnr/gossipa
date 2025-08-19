@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { createSocket } from "./lib/socket";
+import { createSocket } from "../lib/socket";
 import type { ServerToClientEvents, ClientToServerEvents } from "@/types/socket";
 import type { Socket } from "socket.io-client";
 

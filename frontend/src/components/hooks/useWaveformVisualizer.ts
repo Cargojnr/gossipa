@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 
 export function useWaveformVisualizer(stream: MediaStream | null, isRecording: boolean) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!stream || !isRecording || !canvasRef.current) return;
