@@ -30,7 +30,7 @@ export default function RegisterPage() {
       username: form.username,
       email: form.email,
       password: form.password,
-      avatar: selectedAvatar // assuming this is the avatar/color value
+      avatar: './img/avatars/thumbs/' + selectedAvatar // assuming this is the avatar/color value
     };
   
     try {

@@ -1038,3 +1038,96 @@ ${commentDisp}
 </script>
 
 
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+  const commentSections = document.querySelectorAll(".comment-section");
+
+  commentSections.forEach(async (section) => {
+    const commentList = section.querySelector(".comments-list");
+
+
+    // Toggle dropdown
+    section.querySelector("#commentButton").addEventListener("click", () => {
+      const dropdown = section.querySelector(".comment-dropdown");
+      dropdown.classList.toggle("active");
+
+      const icon = section.querySelector("#commentButton i");
+      icon.className = dropdown.classList.contains("active")
+        ? "fas fa-comment-slash"
+        : "fas fa-comment";
+    });
+
+    const postType = section.closest(".secret").dataset.type;
+    const postId = section.querySelector("#audioId")?.value || section.querySelector("#secretId")?.value;
+    const fetchUrl = `/comment/${postType}/${postId}`;
+
+    // Fetch and display comments
+    try {
+      const response = await fetch(fetchUrl);
+      const data = await response.json();
+      const comments = data.comments;
+
+      if (comments && comments.length > 0) {
+        section.querySelector(".comment-display").insertAdjacentHTML(
+          "afterbegin",
+          `<p class="total">All comments: ${data.totalComments}</p>`
+        );
+
+
+
+        comments.forEach((comment) => {
+          const li = document.createElement("li");
+          li.className = "comment-item";
+          li.innerHTML = `
+<div>
+<small class="user"><strong>@anonym${comment.user_id}</strong></small>
+<p class="comment">${comment.comment}</p>
+</div>
+<button type="button" class="translate-btn" data-id="${comment.id}" data-text="${comment.comment}">Translate to english</button>
+<p class="translated-text" id="translated-${postId}-${comment.id}"></p>
+`;
+          commentList.appendChild(li);
+        });
+      } else {
+        commentList.innerHTML = `<p class="total">${data.noComment}</p>`;
+      }
+    } catch (err) {
+      console.error("Error loading comments:", err);
+    }
+
+    // Delegate click for Translate buttons inside this section
+    commentList.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("translate-btn")) {
+        const btn = e.target;
+        const text = btn.dataset.text;
+        const id = btn.dataset.id;
+        const output = section.querySelector(`#translated-${postId}-${id}`);
+
+        output.innerText = "Translating...";
+
+        try {
+          const res = await fetch("/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, targetLang: "en" }),
+          });
+
+          const result = await res.json();
+          if (result.translated) {
+            output.innerText = result.translated;
+          } else {
+            output.innerText = "Translation failed.";
+          }
+        } catch (err) {
+          output.innerText = "Error translating comment.";
+          console.error(err);
+        }
+      }
+    });
+  });
+});
+</script>
+
+
+

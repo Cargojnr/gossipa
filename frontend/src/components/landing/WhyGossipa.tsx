@@ -26,7 +26,7 @@ const WhyGossipa = () => {
   ];
 
   return (
-    <section className="relative py-20 overflow-hidden">
+    <section className="relative py-20 ">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
         <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-primary/20 blur-3xl" />

@@ -92,7 +92,6 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    console.log(code)
 
     try {
       const res = await fetch("http://localhost:5000/verify-code", {
@@ -135,8 +134,6 @@ export default function LoginPage() {
   return (
 
     <AuthLayout> {/* 👈 wrap in AuthLayout */}
-
-
       <AnimatePresence mode="wait">
         {step === "login" ? (
           <>
@@ -153,7 +150,7 @@ export default function LoginPage() {
               exit={{ opacity: 0, y: -30 }}
               transition={{ duration: 0.3 }}
             >
-              <h1 className="text-2xl font-bold text-center">Login</h1>
+              {/* <h1 className="text-2xl font-bold text-center">Login</h1> */}
               <Input
                 name="username"
                 placeholder="Username"

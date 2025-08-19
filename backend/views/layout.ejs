@@ -6,26 +6,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <meta name="description"
-  content="Share gists secretly with end-to-end encryption. Gossipa guarantees your privacy with 100% anonymity." />
-<meta name="keywords"
-  content="anonymity, secret sharing, encrypted messaging, privacy, end-to-end encryption, anonymous communication" />
-<meta name="robots" content="index, follow" />
-<meta name="author" content="Anonym" />
+    content="Share gists secretly with end-to-end encryption. Gossipa guarantees your privacy with 100% anonymity." />
+  <meta name="keywords"
+    content="anonymity, secret sharing, encrypted messaging, privacy, end-to-end encryption, anonymous communication" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="Anonym" />
 
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Gossipa - Share Gists Secretly" />
-<meta property="og:description"
-  content="Share your gists secretly with Gossipa. Your privacy is our priority with full end-to-end encryption." />
-<meta property="og:image" content="/img/og-image.png" />
-<meta property="og:url" content="https://yourwebsite.com" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Gossipa - Share Gists Secretly" />
+  <meta property="og:description"
+    content="Share your gists secretly with Gossipa. Your privacy is our priority with full end-to-end encryption." />
+  <meta property="og:image" content="/img/og-image.png" />
+  <meta property="og:url" content="https://yourwebsite.com" />
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Gossipa - Share Gists Secretly" />
-<meta name="twitter:description"
-  content="Share your gists secretly  with Gossipa. Your privacy is our priority with full end-to-end encryption." />
-<meta name="twitter:image" content="/img/twitter-image.png" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Gossipa - Share Gists Secretly" />
+  <meta name="twitter:description"
+    content="Share your gists secretly  with Gossipa. Your privacy is our priority with full end-to-end encryption." />
+  <meta name="twitter:image" content="/img/twitter-image.png" />
 
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2&family=Quicksand&display=swap" rel="stylesheet">
   <script src="https://kit.fontawesome.com/ceb8cfc409.js" crossorigin="anonymous"></script>
@@ -42,57 +42,74 @@
   </title>
 
   <style>
-     .install-prompt {
-    /* position: fixed;
+    .install-prompt {
+      /* position: fixed;
     bottom: 20px;
     right: 20px; */
-    background: var(--secondary-color, #d13d87);
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px;
-    padding: 12px 20px;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    z-index: 1000;
-    overflow: hidden;
-  }
+      background: var(--secondary-color, #d13d87);
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 20px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      /* box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); */
+      z-index: 1000;
+      overflow: hidden;
+    }
 
-  .pulse-ring {
-    width: 12px;
-    height: 12px;
-    background-color: #ffffff;
-    border-radius: 50%;
-    position: absolute;
-    left: 16px;
-    animation: pulse 1.5s infinite;
-  }
+    .pulse-ring {
+      position: relative;
+      width: 8px;
+      height: 8px;
+      background-color: var(--primary-color);
+      backdrop-filter: blur(0);
+      border-radius: 50%;
+      z-index: 10;
+    }
 
-  @keyframes pulse {
-    0% {
-      transform: scale(1);
-      opacity: 0.9;
+    .pulse-ring::after {
+      content: '';
+      position: absolute;
+      top: -50% !important;
+      left: -50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: transparent;
+      backdrop-filter: blur(50px);
+      border: 3px solid var(--primary-color);
+      animation: pulse 1.5s infinite;
+      z-index: 0;
     }
-    70% {
-      transform: scale(2.5);
-      opacity: 0;
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        /* opacity: 0.9; */
+      }
+
+      70% {
+        transform: scale(2.5);
+        /* opacity: 0; */
+      }
+
+      100% {
+        transform: scale(1);
+        /* opacity: 0; */
+      }
     }
-    100% {
-      transform: scale(1);
-      opacity: 0;
-    }
-  }
   </style>
 </head>
 
 <body class="main-background">
 
-  <%- include('partials/brand-loader') %>
-  
+
+
   <script>
     window.addEventListener("load", function () {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -145,13 +162,19 @@
         </div>
         <div id="menu" class="menu-hidden">
           <div class="container">
-            <div class="profile-header">
+            <div class="profile-head">
               <img oncontextmenu="return false;"
                 src="<%= profilePicture ? profilePicture : '../../' + profilePicture %>" alt="Profile Avatar"
                 class="profile-avatar" />
 
-              <h3 class="username">Hello, <span class="username">
-                  @amebo<%= userId %>
+              <h3 class="username-row">Hello,&nbsp;<span class="username">
+                 <span class="user<%= userId %>">
+                  <% if(stealthMode){  %>
+                    @gossipa<%= userId %>
+                    <% } else { %>
+                      @<%= username %>
+                      <% } %>
+                </span>
                     <% if(verification===true) {%>
                       <img oncontextmenu="return false;" src="../../img/gossipa3.png" alt="Verifiied Badge"
                         class="verified-badge">
@@ -160,13 +183,6 @@
                 </span></h3>
             </div>
 
-            <div class="theme-switch ">
-              <input type="checkbox" id="themeToggle" class="theme-toggle" onchange="toggleMode()" />
-              <label for="themeToggle" class="theme-toggle-label">
-                <span class="sun-icon">☀️</span>
-                <span class="moon-icon">🌙</span>
-              </label>
-            </div>
 
             <div class="menu">
               <div class="menu-nav">
@@ -223,17 +239,19 @@
                   <li><a href="">FAQ</a></li>
                   <li><a href="">Contact</a></li>
                   <li><a href="/feedback">Reviews</a></li>
-                  <li>  <button id="installBtn" style="display:none;" class="install-prompt">
-                    <span class="pulse-ring"></span>
-                    <i class="fas fa-download"></i> Install Gossipa App
-                  </button></li>
-                
+                  <li> 
+                    <button id="installBtn" style="display:none;" class="install-prompt">
+                      <span class="pulse-ring"></span>
+                      <i class="fas fa-download"></i> Install Gossipa App
+                    </button>
+                  </li>
+
                 </ul>
               </div>
               <p class="menu-lang">
                 <i class="fas fa-globe"></i> English
               </p>
-              <button id="close">Close</button>
+              <button id="close"><i class="fas fa-xmark"></i></button>
             </div>
           </div>
         </div>
@@ -253,13 +271,13 @@
     <aside class="left-sidebar">
       <div class="aside">
         <ul class="nav">
-          <li class="nav-item current">
+          <li class="nav-item <%= locals.title === 'Gossip feeds' ? 'current' : null %>">
             <a href="/feeds">
               <i class="nav-icon fas fa-home"></i> &nbsp;
               <span class="nav-text">Home</span>
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%= locals.title === 'Explore Your Space' ? 'current' : null %>">
             <a href="/explore">
               <i class="nav-icon fab fa-modx"></i> &nbsp;
               <span class="nav-text">Explore</span>
@@ -267,28 +285,29 @@
               <span class="nav-tag">New</span>
             </a>
           </li>
-          <li class="nav-item chief">
-            <a href="">
+          <li class="nav-item chief <%= locals.title === 'Saved Gists' ? 'current' : null %>">
+            <a href="/bookmarked">
               <i class="nav-icon fas fa-bookmark"></i>
               &nbsp;<span class="nav-text">Bookmarks</span>&nbsp;
             </a>
           </li>
           <li class="nav-item chief">
-            <a href="/subscribe">
+            <a href="/subscription">
               <i class="nav-icon fas fa-award"></i>
               &nbsp;<span class="nav-text">Become a Chief</span>&nbsp;
               <span class="nav-text"><img oncontextmenu="return false;" src="../../img/gossipa3.png" alt=""
                   class="nav-icon verified-badge"></span>
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%= locals.title === 'My Profile' ? 'current' : null %>">
             <a href="/profile">
               <i class="nav-icon fas fa-circle-user"></i> &nbsp;
               <span class="nav-text">My Profile</span>
             </a>
           </li>
           <li class="nav-item blur">
-            <a href="/chat">
+            <a aria-disabled="true">
+
               <i class="nav-icon fas fa-comments"></i> &nbsp;
               <span class="nav-text">GossipaCity</span>
 
@@ -296,7 +315,7 @@
             </a>
           </li>
 
-          <li class="nav-item">
+          <li class="nav-item <%= locals.title === 'Share your Gossip' || 'Edit your Gossip' ? 'current' : null %>">
             <a href="/submit">
               <i class="fas fa-circle-plus nav-icon"></i>
               &nbsp;<span class="nav-text"> Compose Gist</span>&nbsp;
@@ -313,7 +332,7 @@
       <%- body %>
     </main>
 
-    <div id="milestone-badge" class="hidden">🎉 10 Reactions! 🎉</div>
+   
 
     <div id="announcement-overlay" class="hidden">
       <div class="trumpet-animation"></div>
@@ -329,19 +348,17 @@
       <button id="close-announcement" class="btn btn-dark btn-lg">Close</button>
     </div>
 
+     <div class="theme-switch">
+              <button id="themeToggleBtn" class="theme-toggle-btn">🌙<span class="nav-text">Dark Mode</span></button>
+      </div>
 
-    <div class="theme-switch nav-text">
-      <input type="checkbox" id="themeToggle" class="theme-toggle" onchange="toggleMode()" />
-      <label for="themeToggle" class="theme-toggle-label">
-        <span class="sun-icon">☀️</span>
-        <span class="moon-icon">🌙</span>
-      </label>
-    </div>
 
     <!-- Content of each page will be injected here -->
 
     <!-- Notifications Container -->
-    <div id="notification" style="position: fixed; bottom: 10px; left: 10px; z-index: 1000"></div>
+    <div id="notification"></div>
+
+    <div id="milestone-badge" class="hidden">🎉 10 Reactions! 🎉</div>
   </div>
 
 
@@ -653,18 +670,26 @@
 
       const notificationsDiv = document.getElementById("notification");
       const notification = document.createElement("div");
-      notification.className = "notification";
+      notification.className = "toast";
 
       // Display a notification if it's a "secret" type
-      if (data.type === "secret") {
+      if (data.type === "post") {
         notification.innerText = `New secret shared by ~~@gossipa${data.data.userId}~~: "${data.data.secret}"`;
+      } else if(data.type === "comment") {
+        notification.innerText = `Your Gist recieved a new comment from --@gossipa${data.data.userId}~~`;
       } else if (data.type === "selected") {
         notification.innerText = `~~@gossipa${data.data.userId}~~ Your secret is the top most discussed for the Day...... Keep it up!"`;
         notificationsDiv.style.textAlign = "center"
-      } else if (data.type === "reaction") {
+
+      }else if (data.type === "eavedrop"){
+notification.innerText = `You are being eavedropped by ~~@gossipa${data.data.audience}~~:`;
+      }
+       else if (data.type === "reaction") {
         const { reaction, count, milestone } = data.data;
         notification.innerText =
           `Your Gossip received a new "${reaction}" reaction! Total: ${count}.`
+      } else if (data.type === "stealth"){
+         notification.innerText = `You ${data.data.status} stealth mode.`
       } else if (data.type === "top-secret") {
         notification.innerText = `Most discussed secret goes to ~~@gossipa${data.data.userId}~~"`;
       }
@@ -680,50 +705,64 @@
   </script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("js/service-worker.js");
+      navigator.serviceWorker.register("../../js/service-worker.js");
     }
   </script>
   <script>
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
-    
+
     // Listen for install prompt event
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       installBtn.style.display = 'flex';
     });
-    
+
     // Handle click to show install prompt
     installBtn.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
+        const notificationsDiv = document.getElementById("notification");
+      const notification = document.createElement("div");
+      notification.className = "toast";
         if (outcome === 'accepted') {
           console.log('User accepted the install prompt');
+          
+      notification.innerText = "Installation successful"
         } else {
           console.log('User dismissed the install prompt');
+           notification.innerText = "Installation failed"
         }
         installBtn.style.display = 'none';
         deferredPrompt = null;
+
+         notificationsDiv.appendChild(notification);
+
+      // Automatically remove the notification after 5 seconds
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
       }
     });
-    </script>
+  </script>
 
-<script>
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      window.brandLogo?.show();
-      setTimeout(() => {
-        window.location.href = this.formAction;
-      }, 2400);
+  <script>
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.brandLogo?.show();
+        setTimeout(() => {
+          window.location.href = this.formAction;
+        }, 2400);
+      });
     });
-  });
-</script>
+  </script>
 
 
   <script src="/js/defaultTheme.js"></script>
+  <script src="https://unpkg.com/lottie-web@5.10.0/build/player/lottie.min.js"></script>
 </body>
 
 </html>

@@ -6,7 +6,7 @@ import LandingFooter from "./landing/LandingFooter"
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col  bg-background text-foreground">
       <main className="flex-1">
         {/* Hero */}
         <section className="relative">

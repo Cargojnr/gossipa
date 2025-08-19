@@ -291,7 +291,7 @@ app.get("/user/:id", async (req, res) => {
   const userId = req.params.id;
   try {
     const result = await db.query(
-      "SELECT id, username, verified, profile_picture FROM users WHERE id = $1", [userId]
+      "SELECT id, username, verified, stealth_mode, profile_picture FROM users WHERE id = $1", [userId]
     );
     if (result.rows.length > 0) {
       res.json(result.rows[0]);
@@ -310,7 +310,7 @@ app.get("/active-users", async (req, res) => {
     if (ids.length === 0) return res.json([]);
 
     const result = await db.query(`
-      SELECT id, username, verified, profile_picture FROM users
+      SELECT id, username, verified, stealth_mode, profile_picture FROM users
       WHERE id = ANY($1::int[])
     `, [ids]);
 
@@ -424,6 +424,32 @@ app.get("/api/stories", async (req, res) => {
 
 
 
+
+
+app.get("/eavedrop-status/:targetId", async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ status: "unauthenticated" });
+
+  const audienceId =  req.user.id;
+  const targetId =  req.params.targetId;
+
+  try {
+    const check = await db.query(
+      "SELECT 1 FROM eavedrops WHERE audience_id = $1 AND target_id = $2",
+      [audienceId, targetId]
+    );
+
+    if (check.rows.length > 0) {
+      return res.json({ status: "eavedropping" });
+    } else {
+      return res.json({ status: "not_eavedropping" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "error" });
+  }
+});
+
+
 app.get("/profile", async (req, res) => {
   if (req.isAuthenticated()) {
     const userId = req.user.id;
@@ -433,21 +459,71 @@ app.get("/profile", async (req, res) => {
         [req.user.id]
       );
 
+      const secrets = result.rows;
+
       const audioFiles = await Audio.findAll({
         where: { userId },
       });
 
-      const userDetails = result.rows;
+      const textBookmarkCounts = await db.query(`
+        SELECT secret_id, COUNT(*) AS count
+        FROM bookmarks
+        WHERE secret_id = ANY($1::int[])
+        GROUP BY secret_id
+      `, [secrets.map(p => p.id)]);
+
+      const textBookmarkMap = {};
+      textBookmarkCounts.rows.forEach(row => {
+        textBookmarkMap[row.secret_id] = parseInt(row.count);
+      });
+  
+      // Attach bookmark count to each post
+      const enrichedTextSecrets = secrets.map(post => ({
+        ...post,
+        bookmark_count: textBookmarkMap[post.id] || 0
+      }));
+
+      const audioBookmarkCounts = await db.query(`
+        SELECT audio_id, COUNT(*) AS count
+        FROM bookmarks
+        WHERE audio_id = ANY($1::int[])
+        GROUP BY audio_id
+      `, [audioFiles.map(p => p.id)]);
+
+      const audioBookmarkMap = {};
+      audioBookmarkCounts.rows.forEach(row => {
+        audioBookmarkMap[row.audio_id] = parseInt(row.count);
+      });
+  
+      // Attach bookmark count to each post
+      const enrichedAudioSecrets = audioFiles.map(post => ({
+        ...post,
+        bookmark_count: audioBookmarkMap[post.id] || 0
+      }));
+
+      const audienceResult = await db.query(
+    "SELECT COUNT(*) FROM eavedrops WHERE target_id = $1",
+  [req.user.id]
+   );
+
+   const userResult = await db.query("SELECT * FROM users WHERE id = $1", [userId])
+
+   const userProfile = userResult.rows[0]
+
+   const audienceCount = audienceResult.rows[0].count
 
       res.render("profile", {
         userId: req.user.id,
         activeStatus: req.user.active_status,
         verification: req.user.verified,
+        stealthMode : userProfile.stealth_mode,
         profilePicture: req.user.profile_picture,
-        verification: req.user.verified,
+        userBio: req.user.bio,
         username: req.user.username,
-        profile: userDetails,
-        userAudio: audioFiles,
+        email: req.user.email,
+        profile: enrichedTextSecrets,
+        userAudio: enrichedAudioSecrets,
+        audienceCount: audienceCount,
         title: "My Profile"
       });
     } catch (err) {
@@ -461,15 +537,20 @@ app.get("/profile/amebo/:user", async (req, res) => {
     const userId = req.params.user;
     try {
       const result = await db.query(
-        "SELECT active_status, verified, timestamp, reported, secrets.id, reactions,profile_picture, username,user_id, color, category, secret FROM secrets JOIN users ON users.id = user_id WHERE user_id = $1 ORDER by secrets.id DESC",
+        "SELECT active_status, verified, timestamp, reported, secrets.id, reactions,profile_picture, username, stealth_mode, bio, user_id, color, category, secret FROM secrets JOIN users ON users.id = user_id WHERE user_id = $1 ORDER by secrets.id DESC",
         [userId]
       );
 
+      const secrets = result.rows;
+
       const userProfile = result.rows;
       const userid = userProfile[0].user_id;
+      const username = userProfile[0].username
+      const userBio = userProfile[0].bio
       const activeStatus = userProfile.active_status;
       const verification = userProfile[0].verified;
       const userPicture = userProfile[0].profile_picture;
+      const stealthMode = userProfile[0].stealth_mode;
 
       const audioFiles = await Audio.findAll({
         where: { userId },
@@ -478,15 +559,67 @@ app.get("/profile/amebo/:user", async (req, res) => {
       const totalReactions = result.reactions;
       const totalComments = result.comment;
 
+      const textBookmarkCounts = await db.query(`
+        SELECT secret_id, COUNT(*) AS count
+        FROM bookmarks
+        WHERE secret_id = ANY($1::int[])
+        GROUP BY secret_id
+      `, [secrets.map(p => p.id)]);
+
+      const textBookmarkMap = {};
+      textBookmarkCounts.rows.forEach(row => {
+        textBookmarkMap[row.secret_id] = parseInt(row.count);
+      });
+  
+      // Attach bookmark count to each post
+      const enrichedTextSecrets = secrets.map(post => ({
+        ...post,
+        bookmark_count: textBookmarkMap[post.id] || 0
+      }));
+
+      const audioBookmarkCounts = await db.query(`
+        SELECT audio_id, COUNT(*) AS count
+        FROM bookmarks
+        WHERE audio_id = ANY($1::int[])
+        GROUP BY audio_id
+      `, [audioFiles.map(p => p.id)]);
+
+      const audioBookmarkMap = {};
+      audioBookmarkCounts.rows.forEach(row => {
+        audioBookmarkMap[row.audio_id] = parseInt(row.count);
+      });
+  
+      // Attach bookmark count to each post
+      const enrichedAudioSecrets = audioFiles.map(post => ({
+        ...post,
+        bookmark_count: audioBookmarkMap[post.id] || 0
+      }));
+
+        const audienceResult = await db.query(
+    "SELECT COUNT(*) FROM eavedrops WHERE target_id = $1",
+  [userId]
+   );
+
+   const audienceCount = audienceResult.rows[0].count
+
+
+
       res.render("profile", {
+         title: stealthMode ? `gossipa${userid} Profile` : username,
         userId: req.user.id,
         profileId: userid,
-        verification: verification,
+        userName: username,
+        username: req.user.username,
+        userBio: userBio,
+        verified: verification,
+        verification: req.user.verified,
+        stealthMode : stealthMode,
         userPicture,
         activeStatus: activeStatus,
         profilePicture: req.user.profile_picture,
-        userProfile,
-        userAudio: audioFiles,
+        userProfile: enrichedTextSecrets,
+        userAudio: enrichedAudioSecrets,
+        audienceCount: audienceCount,
         totalComments,
         totalReactions,
       });
@@ -494,9 +627,10 @@ app.get("/profile/amebo/:user", async (req, res) => {
       console.log(err);
     }
   } else {
-    res.redirect("http://localhost:5173/login");
+    res.redirect("/login");
   }
 });
+
 
 app.get("/explore", (req, res) => {
   if(req.isAuthenticated()){
@@ -504,6 +638,7 @@ app.get("/explore", (req, res) => {
       title: "Explore Your Space",
       userId: req.user.id,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture})
   } else {
     res.redirect("login")
@@ -526,6 +661,7 @@ app.get("/random", async (req, res) => {
         userId: req.user.id,
         activeStatus: req.user.active_status,
         verification: req.user.verified,
+        stealthMode : req.user.stealth_mode,
         profilePicture: req.user.profile_picture,
         username: req.user.username,
         mode: mode,
@@ -558,6 +694,7 @@ app.get("/random-secret", async (req, res) => {
         userId: req.user.id,
         activeStatus: req.user.active_status,
         verification: req.user.verified,
+        stealthMode : req.user.stealth_mode,
         profilePicture: req.user.profile_picture,
         username: req.user.username,
         theme: userTheme,
@@ -582,11 +719,11 @@ app.get("/feeds", async (req, res) => {
         "SELECT id, verified, username, profile_picture FROM users"
       );
 
-      const trendingQuery = await db.query("SELECT timestamp, verified, username, profile_picture,secrets.id,secret,user_id FROM secrets JOIN users ON users.id = user_id ORDER BY secrets.id DESC LIMIT 14")
+      const trendingQuery = await db.query("SELECT timestamp, verified, username, stealth_mode, profile_picture,secrets.id,secret,user_id FROM secrets JOIN users ON users.id = user_id ORDER BY secrets.id DESC LIMIT 14")
 
       const secretsResult = await db.query(`
         SELECT secrets.id, timestamp, reported, verified, reactions,
-               profile_picture, username, user_id, color, category, secret
+               profile_picture, stealth_mode, username, user_id, color, category, secret
         FROM secrets
         JOIN users ON users.id = user_id
       `);
@@ -608,7 +745,7 @@ const audioUserIds = [...new Set(audioPosts.map(audio => audio.userId))];
 
 // Step 2: Query user info for those IDs
 const usersResult = await db.query(
-  `SELECT id, username, verified, profile_picture FROM users WHERE id = ANY($1)`,
+  `SELECT id, username, verified, profile_picture, stealth_mode FROM users WHERE id = ANY($1)`,
   [audioUserIds]
 );
 const userMap = {};
@@ -628,8 +765,10 @@ const formattedAudio = audioPosts.map((audio) => {
     id: audio.id,
     user_id: audio.userId,
     username: user.username || "unknown",
+    stealthMode: user.stealth_mode,
     verification: user.verified || false,
     profile_picture: user.profile_picture || "/img/default-avatar.png",
+    displayUser: user.stealth_mode,
     url: audio.url,
     type: "audio",
     timestamp: new Date(audio.uploadDate),
@@ -643,6 +782,10 @@ const formattedAudio = audioPosts.map((audio) => {
       (a, b) => b.timestamp - a.timestamp
     );
 
+    const userResult = await db.query("SELECT * FROM users WHERE id = $1", [userId])
+
+   const userProfile = userResult.rows[0]
+
 
     res.render("secrets", {
       allUsers: allUsers.rows,
@@ -652,6 +795,7 @@ const formattedAudio = audioPosts.map((audio) => {
       userId,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : userProfile.stealth_mode,
       profilePicture: req.user.profile_picture,
       username: req.user.username,
       theme: userTheme,
@@ -663,6 +807,178 @@ const formattedAudio = audioPosts.map((audio) => {
     }
   } else {
     res.redirect("http://localhost:5173/login");
+  }
+});
+
+app.get("/bookmarked", async(req, res) => {
+  if (!req.isAuthenticated()) return res.redirect("/login");
+
+  const userId = req.user.id;
+
+  try {
+    // Step 1: Fetch bookmarks for the user
+    const bookmarks = await db.query(
+      "SELECT * FROM bookmarks WHERE user_id = $1",
+      [userId]
+    );
+
+    const secretIds = bookmarks.rows
+      .filter(b => b.post_type === "text")
+      .map(b => b.secret_id);
+
+    const audioIds = bookmarks.rows
+      .filter(b => b.post_type === "audio")
+      .map(b => b.audio_id);
+
+    // Step 2: Fetch text secrets
+    let savedSecrets = [];
+    if (secretIds.length > 0) {
+      const secretsResult = await db.query(`
+        SELECT secrets.id, timestamp, reported, verified, reactions,
+               profile_picture, stealth_mode, username, user_id, color, category, secret
+        FROM secrets
+        JOIN users ON users.id = user_id
+        WHERE secrets.id = ANY($1)
+      `, [secretIds]);
+
+      savedSecrets = secretsResult.rows.map(secret => ({
+        ...secret,
+        type: "text",
+        timestamp: new Date(secret.timestamp),
+      }));
+    }
+
+    // Step 3: Fetch audio posts
+    let savedAudios = [];
+    if (audioIds.length > 0) {
+      const audioPosts = await Audio.findAll({
+        where: { id: audioIds },
+        order: [["uploadDate", "DESC"]],
+      });
+
+      // Get audio post user details
+      const audioUserIds = [...new Set(audioPosts.map(a => a.userId))];
+      const usersResult = await db.query(
+        `SELECT id, username, verified, profile_picture, stealth_mode FROM users WHERE id = ANY($1)`,
+        [audioUserIds]
+      );
+      const userMap = {};
+      usersResult.rows.forEach(user => userMap[user.id] = user);
+
+      savedAudios = audioPosts.map(audio => {
+        const user = userMap[audio.userId] || {};
+        return {
+          id: audio.id,
+          user_id: audio.userId,
+          username: user.username || "unknown",
+          stealthMode: user.stealth_mode,
+          verification: user.verified || false,
+          profile_picture: user.profile_picture || "/img/default-avatar.png",
+          url: audio.url,
+          type: "audio",
+          timestamp: new Date(audio.uploadDate),
+          reactions: audio.reactions || {}
+        };
+      });
+    }
+
+    const savedFeeds = [...savedSecrets, ...savedAudios].sort((a, b) => b.timestamp - a.timestamp);
+
+    const userResult = await db.query("SELECT * FROM users WHERE id = $1", [userId])
+
+    const userProfile = userResult.rows[0]
+
+    // Final response
+    res.render("bookmark", {
+      savedFeeds,
+      savedAudios,
+      userId,
+      profilePicture: req.user.profile_picture,
+      username: req.user.username,
+      verification: req.user.verified,
+      stealthMode : userProfile.stealth_mode,
+      title: "Saved Gists"
+    });
+
+  } catch (error) {
+    console.error("Failed to fetch saved gists:", error);
+    res.status(500).send("Something went wrong loading your saved gists.");
+  }
+})
+
+
+app.get("/subscription", async(req, res) => {
+  if(req.isAuthenticated()){
+    try{
+      const result = await db.query("SELECT * FROM users WHERE verified = true")
+
+      const subscribers = result.rows
+
+      res.render("subscription", {
+        subscribers: subscribers,
+        userId: req.user.id,
+        activeStatus: req.user.active_status,
+        verification: req.user.verified,
+        stealthMode : req.user.stealth_mode,
+        profilePicture: req.user.profile_picture,
+        username: req.user.username,
+        title: 'Gossip feeds',
+      });
+
+    }catch{
+      console.log(err)
+    }
+  }else {
+    res.redirect("http://localhost:5173/login")
+  }
+})
+
+
+app.post("/bookmark", async (req, res) => {
+  const userId = req.user?.id;
+  const { postId, postType } = req.body;
+
+  if (!userId) return res.status(401).json({ success: false, message: "Not logged in" });
+
+  try {
+    // Check for duplicates
+    if(postType === "text"){
+      const existing = await db.query(
+        "SELECT * FROM bookmarks WHERE user_id = $1 AND secret_id = $2",
+        [userId, postId]
+      );
+  
+      if (existing.rows.length > 0) {
+        return res.json({ success: false, message: "Already bookmarked" });
+      }
+  
+      await db.query(
+        "INSERT INTO bookmarks (user_id, secret_id, post_type) VALUES ($1, $2, $3)",
+        [userId, postId, postType]
+      );
+  
+      return res.json({ success: true, message: "Gist bookmarked successfully ✅" });
+    } else {
+      const existing = await db.query(
+        "SELECT * FROM bookmarks WHERE user_id = $1 AND audio_id = $2",
+        [userId, postId]
+      );
+  
+      if (existing.rows.length > 0) {
+        return res.json({ success: false, message: "Already bookmarked" });
+      }
+  
+      await db.query(
+        "INSERT INTO bookmarks (user_id, audio_id, post_type) VALUES ($1, $2, $3)",
+        [userId, postId, postType]
+      );
+  
+      return res.json({ success: true, message: "Gist bookmarked successfully ✅" });
+    }
+    
+  } catch (error) {
+    console.error("Bookmark error:", error);
+    return res.status(500).json({ success: false, message: "Failed to bookmark post" });
   }
 });
 
@@ -754,6 +1070,15 @@ app.get("/api/comment-counts", async (req, res) => {
   }
 });
 
+app.get("/my-eavedrops", async (req, res) => {
+  const result = await db.query(
+    "SELECT target_id FROM eavedrops WHERE audience_id = $1",
+    [req.user.id]
+  );
+  res.json(result.rows.map(r => r.target_id));
+});
+
+
 
 app.get("/chat", async (req, res) => {
   if (req.isAuthenticated()) {
@@ -767,6 +1092,7 @@ app.get("/chat", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
     });
   } else {
@@ -786,6 +1112,7 @@ app.get("/feedback", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
     });
   } else {
@@ -811,6 +1138,7 @@ app.get("/admin/reports", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
     });
   } catch (error) {
@@ -840,6 +1168,7 @@ app.get("/admin/reviews", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
       count: count,
     });
@@ -902,6 +1231,7 @@ app.get("/admin-dashboard", async (req, res) => {
         userId: req.user.id,
         activeStatus: req.user.active_status,
         verification: req.user.verified,
+        stealthMode : req.user.stealth_mode,
         profilePicture: req.user.profile_picture,
         count: count,
       });
@@ -956,6 +1286,7 @@ app.get("/section/:section", async (req, res) => {
         userId: req.user.id,
         activeStatus: req.user.active_status,
         verification: req.user.verified,
+        stealthMode : req.user.stealth_mode,
         profilePicture: req.user.profile_picture,
         username: req.user.username,
         theme: userTheme,
@@ -1037,6 +1368,7 @@ app.get("/partial-submit", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
       layout: false
     };
@@ -1061,6 +1393,7 @@ app.get("/submit", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
     };
 
@@ -1126,6 +1459,7 @@ app.get("/secret/:id", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
       totalComments: commentData.length || null,
       theme: userTheme,
@@ -1188,6 +1522,7 @@ app.get("/more/:id", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
       totalComments: commentData.length || null,
       theme: userTheme,
@@ -1245,7 +1580,7 @@ app.get("/comment/:type/:id", async (req, res) => {
       if (!audio) return res.status(404).json({ message: "Audio not found" });
 
       const comments = await db.query(
-        `SELECT comment, comments.user_id, username, color, comments.id 
+        `SELECT comment, comments.user_id, verified, username, color, comments.id, stealth_mode
          FROM comments 
          JOIN users ON users.id = comments.user_id 
          WHERE audio_id = $1
@@ -1281,7 +1616,7 @@ app.get("/comment/:type/:id", async (req, res) => {
       }
 
       const commentQuery = `
-        SELECT comment, comments.user_id, username, secret, color, comments.id 
+        SELECT comment, comments.user_id, verified, username, secret, color, comments.id, stealth_mode
         FROM comments 
         JOIN users ON users.id = comments.user_id 
         JOIN secrets ON secrets.id = secret_id 
@@ -1290,6 +1625,9 @@ app.get("/comment/:type/:id", async (req, res) => {
       `;
       const commentResult = await db.query(commentQuery, [requestedId]);
 
+
+
+      
       return res.json({
         secret: data,
         comments: commentResult.rows.length > 0 ? commentResult.rows : null,
@@ -1311,6 +1649,81 @@ app.get("/comment/:type/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to load comment data" });
   }
 });
+
+
+app.post("/eavedrop", async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+
+  const audienceId = req.user.id;
+  const { targetId } = req.body;
+
+  try {
+    const check = await db.query(
+      "SELECT * FROM eavedrops WHERE audience_id = $1 AND target_id = $2",
+      [audienceId, targetId]
+    );
+
+    if (check.rows.length > 0) {
+      // Already eavedropping — remove
+      await db.query(
+        "DELETE FROM eavedrops WHERE audience_id = $1 AND target_id = $2",
+        [audienceId, targetId]
+      );
+      return res.json({ status: "removed" });
+    } else {
+      // Not yet eavedropping — add
+      const result = await db.query(
+        "INSERT INTO eavedrops (audience_id, target_id) VALUES ($1, $2) RETURNING *",
+        [audienceId, targetId]
+      );
+
+      const eavedropResult = result.rows[0];
+
+       io.to(`user_${eavedropResult.target_id}`).emit("new-notification", {
+          type: "eavedrop",
+          data: {
+            id: eavedropResult.id,
+            target: eavedropResult.target_id,
+            audience: eavedropResult.audience_id,
+          },
+        });
+
+      return res.json({ status: "added" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/stealth", async (req, res) => {
+  if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+
+  const userId = req.user.id;
+  const {stealth} = req.body
+
+  try {
+     await db.query(
+        "UPDATE users SET stealth_mode = $1 WHERE id = $2 ",
+        [stealth, userId]
+      );
+
+
+       io.to(`user_${userId}`).emit("new-notification", {
+          type: "stealth",
+          data: {
+            id: userId,
+            status: stealth ? "enabled" : "disabled",
+          },
+        });
+
+      return res.json({ status: stealth ? "enabled" : "disabled"});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
 
@@ -1582,6 +1995,7 @@ app.get("/notifications", async (req, res) => {
         userId: req.user.id,
         activeStatus: req.user.active_status,
         verification: req.user.verified,
+        stealthMode : req.user.stealth_mode,
         profilePicture: req.user.profile_picture,
         username: req.user.username,
         theme: userTheme,
@@ -1665,6 +2079,7 @@ app.post("/search", async (req, res) => {
       userId: req.user.id,
       activeStatus: req.user.active_status,
       verification: req.user.verified,
+      stealthMode : req.user.stealth_mode,
       profilePicture: req.user.profile_picture,
       results: result.rows,
       keyword: search,
@@ -1804,16 +2219,22 @@ app.post("/share", upload.single("audio"), async (req, res) => {
 
         response = result.rows[0];
 
+        const secretResult = await db.query("SELECT username, profile_picture, secret, secrets.id, secrets.user_id, reactions FROM secrets JOIN users ON users.id = user_id WHERE secret = $1 ORDER BY secrets.id DESC", [response.secret])
+
+       
+
         // Emit a notification for the new text secret
         io.emit("new-notification", {
-          type: "secret",
+          type: "post",
           data: {
-            id: response.id,
-            secret: response.secret,
-            userId: response.user_id,
-            category: response.category,
+            id: secretResult.rows[0].id,
+            secret: secretResult.rows[0].secret,
+            userId: secretResult.rows[0].user_id,
+            category: secretResult.rows[0].category,
+            avatar: secretResult.rows[0].profile_picture
           },
         });
+
       } else if (contentType === "audio") {
         // Handle audio-based secret
         if (!req.file) {
@@ -1843,7 +2264,7 @@ app.post("/share", upload.single("audio"), async (req, res) => {
         });
       }
       const user = await db.query(
-        "SELECT username, profile_picture FROM users WHERE id = $1",
+        "SELECT username, profile_picture, stealth_mode, verified FROM users WHERE id = $1",
         [userId]
       );
 
@@ -1871,6 +2292,26 @@ app.post("/share", upload.single("audio"), async (req, res) => {
   }
 });
 
+app.post("update-profile", async(req, res) => {
+  if(req.isAuthenticated()) {
+    try{
+ const {username, email, bio} = req.body
+ const userId = req.user.id
+
+     await db.query("UPDATE users SET username= $1, email = $2, bio = $3 WHERE id = $4", 
+      [username,email, bio, userId])
+
+      res.json({success: true, message: "Profile Updated!"})
+    }catch(err){
+      console.log(err)
+      res.json({success: false, message: err})
+    }
+    
+  }else {
+    res.redirect("http://localhost:5173/login")
+  }
+})
+
 app.post("/edit", async (req, res) => {
   const secretId = req.body.id;
   if (req.isAuthenticated()) {
@@ -1892,6 +2333,7 @@ app.post("/edit", async (req, res) => {
         userId: req.user.id,
         activeStatus: req.user.active_status,
         verification: req.user.verified,
+        stealthMode : req.user.stealth_mode,
         profilePicture: req.user.profile_picture,
       });
     } catch (error) {
@@ -1908,12 +2350,10 @@ app.post("/update", async (req, res) => {
   const updatedCategory = req.body.category;
   if (req.isAuthenticated()) {
     try {
-      const result = await db.query(
-        "UPDATE secrets SET secret = $1, category = $2 WHERE id = $3 RETURNING *",
+       await db.query(
+        "UPDATE secrets SET secret = $1, category = $2 WHERE id = $3",
         [updatedSecret, updatedCategory, id]
       );
-      const data = result.rows[0];
-      console.log(data);
       res.redirect("profile");
     } catch (error) {
       console.log(error);
@@ -1965,62 +2405,6 @@ app.post("/audio-delete", async (req, res) => {
   }
 });
 
-app.post("/comment", async (req, res) => {
-  // const secretId = req.body.id;
-  // const comment = req.body.comment;
-  const { id, commentUserId, comment } = req.body;
-
-  if (comment != "") {
-    try {
-      await db.query(
-        "INSERT INTO comments(comment, secret_id, user_id) VALUES($1, $2, $3)",
-        [comment, id, commentUserId]
-      );
-
-      const result = await db.query(
-        "SELECT comment, username,secret, secrets.id, secrets.user_id FROM comments JOIN users ON users.id = comments.user_id JOIN secrets ON secrets.id = secret_id WHERE secrets.id = $1 ORDER BY comments.id DESC LIMIT 1",
-        [id]
-      );
-      const newComment = result.rows[0];
-
-      io.emit("new-notification", {
-        type: "comment",
-        data: {
-          id: newComment.id, // The secret ID
-          comment: newComment.comment,
-          username: newComment.username,
-          userId: newComment.user_id,
-        },
-      });
-
-      res.status(200).json({ success: true });
-      // .redirect(`secret/${secretId}` )
-    } catch (error) {
-      console.log(error);
-      //  res.json({success:false, error: 'Failed to add comment'});
-      res.status(500).json({ success: false, message: "Error saving comment" });
-    }
-  } else {
-    res.json({ success: false, message: "Enter a comment" });
-  }
-});
-
-app.post("/comment/audio", async (req, res) => {
-  const { comment, audioId } = req.body;
-  const userId = req.user.id;
-
-  try {
-    await db.query(
-      `INSERT INTO comments (comment, user_id, audio_id) VALUES ($1, $2, $3)`,
-      [comment, userId, audioId]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Error adding audio comment:", err);
-    res.status(500).json({ success: false, error: "Failed to post comment" });
-  }
-});
-
 
 app.post("/comment/:type", async (req, res) => {
   const { type } = req.params;
@@ -2055,7 +2439,7 @@ app.post("/comment/:type", async (req, res) => {
       );
 
       const result = await db.query(
-        `SELECT comment, username, secret, secrets.id, secrets.user_id 
+        `SELECT comment, username, verified, stealth_mode, secret, secrets.id, secrets.user_id 
          FROM comments 
          JOIN users ON users.id = comments.user_id 
          JOIN secrets ON secrets.id = secret_id 
@@ -2067,7 +2451,7 @@ app.post("/comment/:type", async (req, res) => {
 
       const newComment = result.rows[0];
 
-      io.emit("new-notification", {
+      io.to(`user_${newComment.user_id}`).emit("new-notification", {
         type: "comment",
         data: {
           id: newComment.id,
@@ -2141,7 +2525,7 @@ app.post("/register", async (req, res) => {
   const username = req.body.username;
   const email = req.body.email;
   const password = req.body.password;
-  const color = req.body.color;
+  const avatar = req.body.avatar;
   try {
     const checkResult = await db.query(
       "SELECT * FROM users WHERE username = $1",
@@ -2159,13 +2543,13 @@ app.post("/register", async (req, res) => {
           console.log("Error hashing passwords:", err);
         } else {
           const result = await db.query(
-            "INSERT INTO users(username, email, password, color) VALUES($1, $2, $3, $4) RETURNING *",
-            [username, email, hash, color]
+            "INSERT INTO users(username, email, password, profile_picture) VALUES($1, $2, $3, $4) RETURNING *",
+            [username, email, hash, avatar]
           );
           const user = result.rows[0];
           req.login(user, (err) => {
             console.log(err);
-            res.redirect("https://localhost:5173/login");
+            res.redirect("http://localhost:5000/feeds");
           });
         }
       });
@@ -2195,7 +2579,7 @@ app.post("/login", (req, res, next) => {
         }
   
         // ✅ Fully logged in user
-        return res.json({ redirect: "/feeds" });
+        return res.json({ redirect: "http://localhost:5000/feeds" });
       });
     })(req, res, next);
   });

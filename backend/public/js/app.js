@@ -24,14 +24,14 @@ function showNotification(message) {
 if(Notification.permission === 'granted'){
   new Notification('Anonymcret', {
     body: message,
-    icon: '/img/iPhone-13-PRO-localhost.png'
+    icon: '/img/logo/mobile-logo.png'
   });
  } else if(Notification.permission === 'default'){
   Notification.requestPermission().then(permission => {
     if(permission === 'granted'){
       new Notification('Anonymcret', {
         body: message,
-        icon: '/img/iPhone-13-PRO-localhost.png'
+        icon: '/img/logo/mobile-logo.png'
       });
     }
   });

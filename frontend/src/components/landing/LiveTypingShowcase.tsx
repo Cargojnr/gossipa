@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { TypeAnimation } from "react-type-animation";
 
 const mockStreams = [
-  { user: "Didi", avatar: "/thumbs/dog.jpg", messages: ["omg you guys 😭", "he actually said that?!", "I'm streaming this live"] },
-  { user: "Kiki", avatar: "/thumbs/girrafe.jpg", messages: ["tea is hot 🔥", "stay tuned babes", "y'all ain't ready"] },
-  { user: "Remy", avatar: "/thumbs/monkey.jpg", messages: ["I just heard something crazy 😳", "catch this gist live"] },
-  { user: "Tola", avatar: "/thumbs/bird.jpg", messages: ["tap in gossipa 🐦", "live gist dropping in 3... 2..."] },
+  { user: "Didi", avatar: "img/avatars/thumbs/dog.jpg", messages: ["omg you guys 😭", "he actually said that?!", "I'm streaming this live"] },
+  { user: "@gossipa56", avatar: "img/avatars/thumbs/girrafe.jpg", messages: ["tea is hot 🔥", "stay tuned babes", "y'all ain't ready"] },
+  { user: "@gossipa101", avatar: "img/avatars/thumbs/monkey.jpg", messages: ["I just heard something crazy 😳", "catch this gist live"] },
+  { user: "Tola", avatar: "img/avatars/thumbs/bird.jpg", messages: ["tap in gossipa 🐦", "live gist dropping in 3... 2..."] },
 ];
 
 type FloatingStreamCardProps = {

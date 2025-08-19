@@ -6,9 +6,9 @@ import LandingFooter from "@/components/landing/LandingFooter";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className="min-h-screen bg-[var(--body-bg)] text-[var(--text-color)] transition-colors duration-300 relative overflow-x-hidden">
       <LandingHeader />
-      <main className="flex flex-col min-h-screen w-full pt-24 sm:pt-20 bg-[var(--body-bg)] text-[var(--text-color)] relative overflow-hidden transition-colors duration-300">
+      <main className="flex flex-col min-h-screen w-full pt-5 sm:pt-20 bg-[var(--body-bg)] text-[var(--text-color)] relative overflow-hidden transition-colors duration-300">
         {/* Ambient Blobs */}
         <div className="pointer-events-none absolute top-[-10%] left-[-10%] w-[300px] h-[300px] bg-[var(--primary-faded)] rounded-full blur-[120px] opacity-30 animate-pulse z-0" />
         <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] w-[300px] h-[300px] bg-[var(--secondary-color)] rounded-full blur-[120px] opacity-20 animate-pulse z-0" />
@@ -25,6 +25,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
       <LandingFooter />
-    </>
+    </div>
   );
 }

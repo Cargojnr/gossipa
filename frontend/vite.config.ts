@@ -19,7 +19,7 @@ export default defineConfig({
         secure: false,
       },
     },
-    // host: true, // enables LAN access
-    // port: 5173
+    host: true, // enables LAN access
+    port: 5173
   },
 })

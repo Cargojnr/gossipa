@@ -42,7 +42,9 @@ const LandingFooter = () => {
           <div className="flex items-center gap-2">
             <FaMask />
             <span>&copy; {currentYear} Gossipa. All Rights Reserved.</span>
+            
           </div>
+          <span>Motto: "Your privacy is or priority."</span>
         </div>
       </div>
     </footer>
