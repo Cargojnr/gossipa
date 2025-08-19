@@ -14,8 +14,8 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<LandingLayout />} />
-        <Route path="https://gossipa.vercel.app/register" element={<RegisterPage />} />
-        <Route path="https://gossipa.vercel.app/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/reset/:token" element={<ResetPage />} />
         <Route path="/forgot" element={<ForgotPasswordPage />} />
         <Route path="/reset" element={<ResetPasswordPage />} />
