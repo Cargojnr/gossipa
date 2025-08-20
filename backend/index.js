@@ -118,8 +118,12 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cors({
   origin: "https://gossipa.vercel.app", // your frontend port
-  credentials: true,              // allow cookies/session
+  credentials: true,      // allow cookies/session
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // allowed methods
+  allowedHeaders: ["Content-Type", "Authorization"],    // allowed headers        
 }));
+app.options("*", cors()); 
+
 
 app.use(
   session({
