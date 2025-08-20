@@ -2553,8 +2553,10 @@ app.post("/register", async (req, res) => {
           );
           const user = result.rows[0];
           req.login(user, (err) => {
-            console.log(err);
-            res.redirect("https://gossipa.vercel.app/login");
+            if (err) {
+              return res.status(500).json({ message: "Login failed" });
+            }
+            res.json({ success: true, redirectTo: "/feeds" });
           });
         }
       });

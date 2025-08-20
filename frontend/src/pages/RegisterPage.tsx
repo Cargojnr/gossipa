@@ -62,6 +62,9 @@ export default function RegisterPage() {
       if (data.message) {
         alert(data.message); // handle errors like duplicate usernames
       }
+      if (data.success && data.redirectTo) {
+        window.location.href = data.redirectTo;
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Registration Failed";
       setError(message);
