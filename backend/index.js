@@ -2538,7 +2538,7 @@ app.post("/register", async (req, res) => {
     );
 
     if (checkResult.rows.length > 0) {
-      res.render("register", {
+      res.json( {
         message: `Username ${username} already exists. Try logging in.`,
       });
     } else {
