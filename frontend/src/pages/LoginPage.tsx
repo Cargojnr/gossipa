@@ -48,7 +48,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch("http://102.176.94.215:5000/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -94,7 +94,7 @@ export default function LoginPage() {
 
 
     try {
-      const res = await fetch("http://localhost:5000/verify-code", {
+      const res = await fetch("http://102.176.94.215:5000/verify-code", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
