@@ -2550,7 +2550,7 @@ app.post("/register", async (req, res) => {
           const user = result.rows[0];
           req.login(user, (err) => {
             console.log(err);
-            res.redirect("/feeds");
+            res.redirect("https://gossipa.onrender.com/feeds");
           });
         }
       });
