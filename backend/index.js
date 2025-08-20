@@ -816,7 +816,7 @@ const formattedAudio = audioPosts.map((audio) => {
 });
 
 app.get("/bookmarked", async(req, res) => {
-  if (!req.isAuthenticated()) return res.redirect("/login");
+  if (!req.isAuthenticated()) return res.redirect("https://gossipa.vercel.app/login");
 
   const userId = req.user.id;
 
@@ -2554,7 +2554,7 @@ app.post("/register", async (req, res) => {
           const user = result.rows[0];
           req.login(user, (err) => {
             console.log(err);
-            res.redirect("https://gossipa.onrender.com/feeds");
+            res.redirect("https://gossipa.vercel.app/login");
           });
         }
       });
