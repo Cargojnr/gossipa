@@ -122,7 +122,6 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // allowed methods
   allowedHeaders: ["Content-Type", "Authorization"],    // allowed headers        
 }));
-app.options("*", cors()); 
 
 
 app.use(
@@ -136,8 +135,7 @@ app.use(
     saveUninitialized: true,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24,
-      secure: process.env.NODE_ENV === "production", // Ensure cookies are only sent over HTTPS in production
-      secure: true,
+      secure: process.env.NODE_ENV === "production",  // Ensure cookies are only sent over HTTPS in production
       sameSite: "none",
     },
   })
