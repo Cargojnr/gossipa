@@ -2557,7 +2557,7 @@ app.post("/register", async (req, res) => {
             if (err) {
               return res.status(500).json({ message: "Login failed" });
             }
-            res.json({ success: true, redirectTo: "/feeds" });
+            res.json({ success: true, redirectTo: "https://gossipa.onrender.com/feeds" });
           });
         }
       });
