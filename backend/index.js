@@ -116,7 +116,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cors({
-  origin: "http://192.168.56.1:5173", // your frontend port
+  origin: "https://gossipa.vercel.app", // your frontend port
   credentials: true,              // allow cookies/session
 }));
 
@@ -806,7 +806,7 @@ const formattedAudio = audioPosts.map((audio) => {
       console.log(err);
     }
   } else {
-    res.redirect("http://192.168.56.1:5173/login");
+    res.redirect("https://gossipa.vercel.app/login");
   }
 });
 
@@ -929,7 +929,7 @@ app.get("/subscription", async(req, res) => {
       console.log(err)
     }
   }else {
-    res.redirect("http://192.168.56.1:5173/login")
+    res.redirect("https://gossipa.vercel.app/login")
   }
 })
 
@@ -1031,7 +1031,7 @@ app.get("/fetch-posts/:user", async (req, res) => {
       res.status(500).json({ message: "Server error" });
     }
   } else {
-    res.redirect("http://192.168.56.1:5173/login");
+    res.redirect("https://gossipa.vercel.app/login");
   }
 });
 
@@ -1096,7 +1096,7 @@ app.get("/chat", async (req, res) => {
       profilePicture: req.user.profile_picture,
     });
   } else {
-    res.redirect("http://192.168.56.1:5173/login");
+    res.redirect("https://gossipa.vercel.app/login");
   }
 });
 
@@ -1116,7 +1116,7 @@ app.get("/feedback", async (req, res) => {
       profilePicture: req.user.profile_picture,
     });
   } else {
-    res.redirect("http://192.168.56.1:5173/login");
+    res.redirect("https://gossipa.vercel.app/login");
   }
 });
 
@@ -1240,7 +1240,7 @@ app.get("/admin-dashboard", async (req, res) => {
       res.status(500).json({ message: "Error fetching reviews" });
     }
   } else {
-    res.redirect("http://192.168.56.1:5173/login");
+    res.redirect("https://gossipa.vercel.app/login");
   }
 });
 
@@ -2308,7 +2308,7 @@ app.post("update-profile", async(req, res) => {
     }
     
   }else {
-    res.redirect("http://192.168.56.1:5173/login")
+    res.redirect("https://gossipa.vercel.app/login")
   }
 })
 
@@ -2507,7 +2507,7 @@ app.post("/review", async (req, res) => {
       });
     }
   } else {
-    res.redirect("http://192.168.56.1:5173/login");
+    res.redirect("https://gossipa.vercel.app/login");
   }
 });
 
@@ -2515,7 +2515,7 @@ app.post("/review", async (req, res) => {
 app.post("/logout", (req, res) => {
     req.logout(() => {
       req.session.destroy(() => {
-        res.redirect("http://192.168.56.1:5173/login");
+        res.redirect("https://gossipa.vercel.app/login");
       });
     });
   });
@@ -2549,7 +2549,7 @@ app.post("/register", async (req, res) => {
           const user = result.rows[0];
           req.login(user, (err) => {
             console.log(err);
-            res.redirect("http://192.168.56.1:5000/feeds");
+            res.redirect("/feeds");
           });
         }
       });
@@ -2579,7 +2579,7 @@ app.post("/login", (req, res, next) => {
         }
   
         // ✅ Fully logged in user
-        return res.json({ redirect: "http://192.168.56.1:5000/feeds" });
+        return res.json({ redirect: "/feeds" });
       });
     })(req, res, next);
   });
@@ -2630,7 +2630,7 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
         if (err) return next(err);
         req.session.isVerified = true;
         delete req.session.tempUserId; // Clean up session
-        return res.json({ redirect: "http://192.168.56.1:5000/feeds" });
+        return res.json({ redirect: "/feeds" });
 
       });
     } catch (error) {
