@@ -2649,7 +2649,7 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
 
   
 passport.use(
-  new Strategy({ passReqToCallback: true }, async function verify(
+  new Strategy({ passReqToCallback: true, usernameField: "email" }, async function verify(
     req,
     username,
     password,
@@ -2659,7 +2659,7 @@ passport.use(
       const ip = requestIp.getClientIp(req); // Make sure 'request-ip' is installed and imported
       const location = geoip.lookup(ip);
 
-      const result = await db.query("SELECT * FROM users WHERE username = $1", [
+      const result = await db.query("SELECT * FROM users WHERE email = $1 OR username = $1", [
         username,
       ]);
       if (result.rows.length === 0)
