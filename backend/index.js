@@ -2649,7 +2649,7 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
 
   
 passport.use(
-  new Strategy({ passReqToCallback: true, usernameField: "email"}, async function verify(
+  new Strategy({ passReqToCallback: true}, async function verify(
     req,
     username,
     password,

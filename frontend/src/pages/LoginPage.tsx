@@ -26,7 +26,7 @@ function isLoginResponse(obj: unknown): obj is LoginResponse {
 
 export default function LoginPage() {
   const [step, setStep] = useState<"login" | "verify">("login");
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -155,7 +155,7 @@ export default function LoginPage() {
               <Input
                 name="username"
                 placeholder="Username"
-                value={form.email}
+                value={form.username}
                 onChange={handleChange}
                 required
               />
