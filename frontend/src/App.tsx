@@ -7,14 +7,12 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import { Toaster } from "sonner";
-import { Analytics } from "@vercel/analytics/next"
 // import FeedsPage from "./pages/FeedsPage";
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Analytics />
         <Route path="/" element={<LandingLayout />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
