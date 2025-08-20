@@ -34,7 +34,7 @@ export default function RegisterPage() {
     };
   
     try {
-      const res = await fetch("http://localhost:5000/register", {
+      const res = await fetch("http://gossipa.onrender.com/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

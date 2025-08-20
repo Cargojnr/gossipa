@@ -65,7 +65,7 @@ const port = process.env.port || 5000;
 const pgSessionStore = pgSession(session);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow frontend connections
+    origin: "https://gossipa.vercel.app", // Allow frontend connections
     methods: ["GET", "POST"],
   },
 });
