@@ -11,7 +11,8 @@ import OtpInput from "../components/OtpInput";
 
 type LoginResponse = {
   needsVerification?: boolean;
-  redirect?: string;
+  redirectTo?: string;
+  success?: string;
   error?: string;
 };
 
@@ -71,8 +72,8 @@ export default function LoginPage() {
 
       if (data.needsVerification) {
         setStep("verify");
-      } else if (data.redirect) {
-        window.location.href = data.redirect;
+      } else if (data.redirectTo) {
+        window.location.href = data.redirectTo;
       } else {
         throw new Error("Unexpected login response");
       }
@@ -115,8 +116,8 @@ export default function LoginPage() {
         throw new Error("Malformed verification response");
       }
 
-      if (data.redirect) {
-        window.location.href = data.redirect;
+      if (data.success && data.redirectTo) {
+        window.location.href = data.redirectTo;
       } else {
         throw new Error("Verification failed");
       }

@@ -42,28 +42,21 @@ export default function RegisterPage() {
         credentials: "include", // if you're using cookies/sessions
         body: JSON.stringify(formData),
       });
+      const data = await res.json();
 
       if (!res.ok) {
-     console.log(res)
-      }
-
-
-      if (res.redirected) {
-        window.location.href = res.url;
-        return;
-      }
- if (res.redirected) {
-        window.location.href = res.url;
-      } else {
-        throw new Error("Unexpected login response");
+        throw new Error(data.message || "Registration failed");
       }
   
-      const data = await res.json();
-      if (data.message) {
-        alert(data.message); // handle errors like duplicate usernames
-      }
+      // If backend says success
       if (data.success && data.redirectTo) {
         window.location.href = data.redirectTo;
+        return;
+      }
+  
+      // If backend just returns a message (like duplicate username)
+      if (data.message) {
+        alert(data.message);
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Registration Failed";
