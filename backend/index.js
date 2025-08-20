@@ -67,6 +67,7 @@ const io = new Server(server, {
   cors: {
     origin: "https://gossipa.vercel.app", // Allow frontend connections
     methods: ["GET", "POST"],
+    credentials: true,              // allow cookies/session
   },
 });
 // const wss = new WebSocket.Server({port});
