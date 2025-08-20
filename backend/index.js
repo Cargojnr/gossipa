@@ -2587,7 +2587,7 @@ app.post("/login", (req, res, next) => {
         }
   
         // ✅ Fully logged in user
-        return res.json({  success: true, redirectTo: "/feeds"  });
+        return res.json({  success: true, redirectTo: "https://gossipa.onrender.com/feeds"  });
       });
     })(req, res, next);
   });
@@ -2638,7 +2638,7 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
         if (err) return next(err);
         req.session.isVerified = true;
         delete req.session.tempUserId; // Clean up session
-        return res.json({  success: true, redirectTo: "/feeds" });
+        return res.json({  success: true, redirectTo: "https://gossipa.onrender.com/feeds" });
 
       });
     } catch (error) {
