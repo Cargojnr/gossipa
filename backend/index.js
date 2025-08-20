@@ -2579,7 +2579,7 @@ app.post("/login", (req, res, next) => {
         }
   
         // ✅ Fully logged in user
-        return res.json({ redirect: "https://gossipa.onrender.com/feeds" });
+        return res.json({ redirect: "/feeds" });
       });
     })(req, res, next);
   });
@@ -2630,7 +2630,7 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
         if (err) return next(err);
         req.session.isVerified = true;
         delete req.session.tempUserId; // Clean up session
-        return res.json({ redirect: "https://gossipa.onrender.com/feeds" });
+        return res.json({ redirect: "/feeds" });
 
       });
     } catch (error) {
