@@ -2600,9 +2600,9 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
     const userId = req.session.tempUserId;
     const { code } = req.body;
   
-    if (!userId) {
-      return res.status(400).json({ error: "Session expired. Please log in again." });
-    }
+    // if (!userId) {
+    //   return res.status(400).json({ error: "Session expired. Please log in again." });
+    // }
   
     try {
       const result = await db.query("SELECT * FROM users WHERE id = $1", [userId]);
@@ -2700,7 +2700,7 @@ passport.use(
 );
 
 passport.serializeUser((user, cb) => {
-  cb(null, user);
+  cb(null, user.id);
 });
 
 passport.deserializeUser((user, cb) => {
