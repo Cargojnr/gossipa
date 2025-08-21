@@ -2597,12 +2597,12 @@ const verifyLimiter = rateLimit({
 });
 
 app.post("/verify-code", verifyLimiter, async (req, res, next) => {
-    const userId = req.session.tempUserId;
+    const userId = 8;
     const { code } = req.body;
   
-    // if (!userId) {
-    //   return res.status(400).json({ error: "Session expired. Please log in again." });
-    // }
+    if (!userId) {
+      return res.status(400).json({ error: "Session expired. Please log in again." });
+    }
   
     try {
       const result = await db.query("SELECT * FROM users WHERE id = $1", [userId]);
@@ -2635,7 +2635,7 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
       req.login(user, (err) => {
         if (err) return next(err);
         req.session.isVerified = true;
-        // delete req.session.tempUserId; // Clean up session
+        delete req.session.tempUserId; // Clean up session
         return res.json({  success: true, redirectTo: "https://gossipa.onrender.com/feeds" });
 
       });
