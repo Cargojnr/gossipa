@@ -2575,7 +2575,7 @@ app.post("/login", (req, res, next) => {
   
         if (user.needsVerification) {
           // Store user in session temporarily
-          req.session.tempUserId = 8;
+          req.session.tempUserId = user.id;
 
           // req.session.save(() => {
           //   res.json({ needsVerification: true });
@@ -2597,7 +2597,7 @@ const verifyLimiter = rateLimit({
 });
 
 app.post("/verify-code", verifyLimiter, async (req, res, next) => {
-    const userId = 8;
+    const userId = req.session.tempUserId;
     const { code } = req.body;
   
     if (!userId) {
