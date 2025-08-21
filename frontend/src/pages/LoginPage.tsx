@@ -20,7 +20,7 @@ function isLoginResponse(obj: unknown): obj is LoginResponse {
   return (
     typeof obj === "object" &&
     obj !== null &&
-    ("needsVerification" in obj || "redirect" in obj || "error" in obj)
+    ("needsVerification" in obj || "redirectTo" in obj || "error" in obj)
   );
 }
 
