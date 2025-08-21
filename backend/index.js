@@ -2635,7 +2635,7 @@ app.post("/verify-code", verifyLimiter, async (req, res, next) => {
       req.login(user, (err) => {
         if (err) return next(err);
         req.session.isVerified = true;
-        delete req.session.tempUserId; // Clean up session
+        // delete req.session.tempUserId; // Clean up session
         return res.json({  success: true, redirectTo: "https://gossipa.onrender.com/feeds" });
 
       });
