@@ -2575,7 +2575,7 @@ app.post("/login", (req, res, next) => {
   
         if (user.needsVerification) {
           // Store user in session temporarily
-          req.session.tempUserId = user.id;
+          req.session.tempUserId = 8;
 
           // req.session.save(() => {
           //   res.json({ needsVerification: true });
